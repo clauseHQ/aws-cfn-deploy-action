@@ -25,7 +25,21 @@ return H(inputs)
       templateBody
     }))
   )
-  .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName }))
+  .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName })
+    .map(({ StackResources: [{ ResourceStatus: StackStatus }] }) => ({
+      StackName,
+      ...inputs,
+      StackStatus
+    }))
+    .errors((error, push) => error.message.indexOf('does not exist') !== -1
+      ? push(null, {
+        StackName,
+        ...inputs,
+        StackStatus: 'INIT'
+      })
+      : push(error)
+    )
+  )
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => {
     console.error(JSON.stringify(error));
