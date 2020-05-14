@@ -111,9 +111,8 @@ return H(inputs)
     .flatMap(() => waitForStackReady(StackName))
     .doto(log('second result of waiting for stack'))
   )
-  .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => {
     console.error(JSON.stringify(error));
     core.setFailed(error.message);
   })
-  .each(console.log);
+  .each(StackStatus => console.log(`final status is ${StackStatus}`));
