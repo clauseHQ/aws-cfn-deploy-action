@@ -28,7 +28,7 @@ return H(inputs)
   .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName }))
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => {
-    console.error(error);
+    console.error(JSON.stringify(error));
     core.setFailed(error.message);
   })
   .each(console.log);
