@@ -8,6 +8,7 @@ const fs = require('fs');
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
+const DEBUG = true;
 
 const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   .doto(log('waitForStackReady: describeStacksStream'))
@@ -62,8 +63,10 @@ const processParameters = parameters => parameters === '' ? [] : parameters
   }));
 
 const log = ctx => obj => {
-  console.log(ctx);
-  console.log(JSON.stringify(obj, null, 2));
+  if (DEBUG) {
+    console.log(ctx);
+    console.log(JSON.stringify(obj, null, 2));
+  }
 };
 
 return H(inputs)
