@@ -53,17 +53,24 @@ const processParameters = parameters => parameters === '' ? [] : parameters
     ParameterValue
   }));
 
+const log = ctx => obj => {
+  console.log(ctx);
+  console.log(JSON.stringify(obj, null, 2));
+};
+
 return H(inputs)
   .map(core.getInput)
   .collect()
   .map(R.zip(inputs))
   .map(R.fromPairs)
+  .doto(log('raw input'))
   .map(inputs => ({
     ...inputs,
     StackName: inputs['stack-name'],
     Capabilities: processCapabilities(inputs.capabilities),
     Parameters: processParameters(inputs.parameters)
   }))
+  .doto(log('processed input: synchronous'))
   .flatMap(({ template, ...inputs }) => H.wrapCallback(fs.readFile)(template)
     .map(body => body.toString('utf8'))
     .map(TemplateBody => ({
@@ -71,10 +78,14 @@ return H(inputs)
       TemplateBody
     }))
   )
+  .doto(log('processed input: asynchronous'))
   .flatMap(({ StackName, ...inputs }) => waitForStackReady(StackName)
+    .doto(log('first result of waiting for stack'))
     .map(StackStatus => StatusHandlers[StackStatus] || StatusHandlers['DEFAULT'])
     .flatMap(handler => handler({ StackName, ...inputs }))
+    .doto(log('result of operating on stack'))
     .flatMap(() => waitForStackReady(StackName))
+    .doto(log('second result of waiting for stack'))
   )
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => {
