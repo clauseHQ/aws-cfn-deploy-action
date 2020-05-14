@@ -14,9 +14,9 @@ inputs:
   parameters:
     description: Cloudformation Template Parameters (Key0=Value0 Key1=Value1 ...)
     required: false
-outputs:
-  time:
-    description: The time we greeted you
+  debug:
+    description: Enables debug logs
+    required: false
 runs:
   using: node12
   main: index.js

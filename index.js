@@ -8,7 +8,7 @@ const fs = require('fs');
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
-const DEBUG = false;
+const DEBUG = R.isEmpty(core.getInput('debug')) ? false : true;
 
 const log = ctx => obj => {
   if (DEBUG) {
