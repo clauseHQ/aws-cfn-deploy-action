@@ -9,6 +9,50 @@ const cfn = H.streamifyAll(new aws.CloudFormation());
 
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
 
+const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
+  .map(({ StackResources: [{ ResourceStatus }] }) => ResourceStatus)
+  .errors((error, push) => error.message.indexOf('does not exist') !== -1
+    ? push(null, 'INIT')
+    : push(error)
+  )
+  .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus)
+    ? H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 10000))
+    : H([StackStatus])
+  );
+
+const StatusHandlers = {
+  INIT: ({ StackName, Capabilities, Parameters, TemplateBody }) => cfn.createStackStream({
+    StackName,
+    Capabilities,
+    Parameters,
+    TemplateBody
+  }),
+  ROLLBACK_COMPLETE: ({ StackName }) => cfn.deleteStackStream({ StackName }),
+  DEFAULT: ({ StackName, Capabilities, Parameters, TemplateBody }) => cfn.updateStackStream({
+    StackName,
+    Capabilities,
+    Parameters,
+    TemplateBody
+  })
+};
+
+const processCapabilities = capabilities => capabilities === '' ? [] : capabilities
+  .replace(/^\ +/, '')
+  .replace(/\ +$/, '')
+  .replace(/\ +/g, ' ')
+  .split(' ');
+
+const processParameters = parameters => parameters === '' ? [] : parameters
+  .replace(/^\ +/, '')
+  .replace(/\ +$/, '')
+  .replace(/\ +/g, ' ')
+  .split(' ');
+  .map(parameter => parameter.split('='))
+  .map(([ParameterKey, ParameterValue]) => ({
+    ParameterKey,
+    ParameterValue
+  }));
+
 return H(inputs)
   .map(core.getInput)
   .collect()
@@ -16,29 +60,21 @@ return H(inputs)
   .map(R.fromPairs)
   .map(inputs => ({
     ...inputs,
-    StackName: inputs['stack-name']
+    StackName: inputs['stack-name'],
+    Capabilities: processCapabilities(inputs.capabilities),
+    Parameters: processParameters(inputs.parameters)
   }))
   .flatMap(({ template, ...inputs }) => H.wrapCallback(fs.readFile)(template)
     .map(body => body.toString('utf8'))
-    .map(templateBody => ({
+    .map(TemplateBody => ({
       ...inputs,
-      templateBody
+      TemplateBody
     }))
   )
-  .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName })
-    .map(({ StackResources: [{ ResourceStatus: StackStatus }] }) => ({
-      StackName,
-      ...inputs,
-      StackStatus
-    }))
-    .errors((error, push) => error.message.indexOf('does not exist') !== -1
-      ? push(null, {
-        StackName,
-        ...inputs,
-        StackStatus: 'INIT'
-      })
-      : push(error)
-    )
+  .flatMap(({ StackName, ...inputs }) => waitForStackReady(StackName)
+    .map(StackStatus => StatusHandlers[StackStatus] || StatusHandlers['DEFAULT'])
+    .flatMap(handler => handler({ StackName, ...inputs }))
+    .flatMap(() => waitForStackReady(StackName))
   )
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => {
