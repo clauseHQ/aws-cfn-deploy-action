@@ -1,21 +1,32 @@
-# Hello world javascript action
+# aws-cfn-deploy github action
 
-This action prints "Hello World" or "Hello" + the name of a person to greet to the log.
+This action does a proper AWS CloudFormation deployment, handling all states properly and waiting for current updates & rollbacks to complete 
 
 ## Inputs
 
-### `who-to-greet`
+### `template`
 
-**Required** The name of the person to greet. Default `"World"`.
+**Required** The name of the cloudformation template.
 
-## Outputs
+### `stack-name`
 
-### `time`
+**Required** The name of the cloudformation stack.
 
-The time we greeted you.
+### `capabilities`
+
+A space-separated list of stack capabilities.
+
+### `parameters`
+
+A space-separated list of stack parameters, each formatted as `Key=Value`.
 
 ## Example usage
 
-uses: actions/hello-world-javascript-action@v1
+```yml
+uses: adriaan-pelzer/aws-cfn-deploy-action@v1.0.0
 with:
-  who-to-greet: 'Mona the Octocat'
+  template: cfn-template-yml
+  stack-name: my-test-stack
+  capabilities: CAPABILITY_IAM CAPABILITY_NAMED_IAM
+  parameters: Parameter0=Value0 Parameter1=Value1
+```
