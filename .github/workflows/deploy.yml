@@ -26,7 +26,8 @@ jobs:
         uses: ./
         id: test
         with:
-          who-to-greet: Adriaan
+          template: cfn-template.yml
+          stack-name: aws-cfn-deploy-action-test
 
       - name: log custom action
         run: echo "${{ steps.test.outputs.time }}"

@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
-['template', 'stack-name', 'capabilities', 'parameters'].forEach(input => console.log(core.getInput(input)));
+['template', 'stack-name', 'capabilities', 'parameters'].forEach(input => console.log(`'${core.getInput(input)}'`));
 
 return H.wrapCallback(fs.readdir)('./')
   .doto(() => core.setOutput('time', new Date().toTimeString()))

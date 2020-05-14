@@ -1,7 +1,7 @@
 name: aws-cfn-deploy-action
 description: AWS Cloudformation deploy with state handling
 inputs:
-  template-file:
+  template:
     description: Cloudformation Template
     required: true
     default: cfn-template-yml
