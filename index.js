@@ -38,6 +38,10 @@ const StackStatusHandlers = {
     Parameters,
     TemplateBody
   })
+    .errors((error, push) => error.message === 'No updates are to be performed.'
+      ? push(null, {})
+      : push(error)
+    )
 };
 
 const processCapabilities = capabilities => capabilities === '' ? [] : capabilities
