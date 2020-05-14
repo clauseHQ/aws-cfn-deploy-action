@@ -1,14 +1,26 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const H = require('highland');
+const R = require('ramda');
 const aws = require('aws-sdk');
 const fs = require('fs');
 
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
-['template', 'stack-name', 'capabilities', 'parameters'].forEach(input => console.log(`'${core.getInput(input)}'`));
+const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
 
-return H.wrapCallback(fs.readdir)('./')
+return H(inputs)
+  .map(core.getInput)
+  .collect()
+  .map(R.zip(inputs))
+  .map(R.fromPairs)
+  .flatMap(inputs => H.wrapCallback(fs.readFile)(inputs.template)
+    .map(body => body.toString('utf8'))
+    .map(templateBody => ({
+      ...inputs,
+      templateBody
+    }))
+  )
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => core.setFailed(error.message))
   .each(console.log);
