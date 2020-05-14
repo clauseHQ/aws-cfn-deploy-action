@@ -18,8 +18,8 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
     : push(error)
   )
   .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus)
-    ? H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 10000))
-    : H([StackStatus])
+    ? H([StackStatus])
+    : H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 10000))
   );
 
 const StatusHandlers = {
