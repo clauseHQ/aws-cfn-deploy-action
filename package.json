@@ -21,6 +21,7 @@
     "@actions/core": "^1.2.4",
     "@actions/github": "^2.2.0",
     "aws-sdk": "^2.676.0",
-    "highland": "^2.13.5"
+    "highland": "^2.13.5",
+    "ramda": "^0.27.0"
   }
 }
