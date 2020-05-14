@@ -19,12 +19,12 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
       ? push(null, 'INIT')
       : push(error);
   })
-  .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus) || R.contains(StackStatus, R.keys(StatusHandlers))
+  .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus) || R.contains(StackStatus, R.keys(StackStatusHandlers))
     ? H([StackStatus])
     : H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 10000))
   );
 
-const StatusHandlers = {
+const StackStatusHandlers = {
   INIT: ({ StackName, Capabilities, Parameters, TemplateBody }) => cfn.createStackStream({
     StackName,
     Capabilities,
@@ -85,7 +85,7 @@ return H(inputs)
   .doto(log('processed input: asynchronous'))
   .flatMap(({ StackName, ...inputs }) => waitForStackReady(StackName)
     .doto(log('first result of waiting for stack'))
-    .map(StackStatus => StatusHandlers[StackStatus] || StatusHandlers['DEFAULT'])
+    .map(StackStatus => StackStatusHandlers[StackStatus] || StackStatusHandlers['DEFAULT'])
     .flatMap(handler => handler({ StackName, ...inputs }))
     .doto(log('result of operating on stack'))
     .flatMap(() => waitForStackReady(StackName))
