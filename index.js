@@ -14,13 +14,18 @@ return H(inputs)
   .collect()
   .map(R.zip(inputs))
   .map(R.fromPairs)
-  .flatMap(inputs => H.wrapCallback(fs.readFile)(inputs.template)
+  .map(inputs => ({
+    ...inputs,
+    StackName: inputs['stack-name']
+  }))
+  .flatMap(({ template, ...inputs }) => H.wrapCallback(fs.readFile)(template)
     .map(body => body.toString('utf8'))
     .map(templateBody => ({
       ...inputs,
       templateBody
     }))
   )
+  .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName }))
   .doto(() => core.setOutput('time', new Date().toTimeString()))
   .errors(error => core.setFailed(error.message))
   .each(console.log);
