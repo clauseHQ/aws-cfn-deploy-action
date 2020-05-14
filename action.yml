@@ -1,13 +1,22 @@
-name: 'Hello World'
-description: 'Greet someone and record the time'
+name: aws-cfn-deploy-action
+description: AWS Cloudformation deploy with state handling
 inputs:
-  who-to-greet:
-    description: 'Who to greet'
+  template-file:
+    description: Cloudformation Template
     required: true
-    default: 'World'
+    default: cfn-template-yml
+  stack-name:
+    description: Cloudformation Stack Name
+    required: true
+  capabilities:
+    description: Cloudformation capabilities (Cap0 Cap1 ...)
+    required: false
+  parameters:
+    description: Cloudformation Template Parameters (Key0=Value0 Key1=Value1 ...)
+    required: false
 outputs:
   time:
-    description: 'The time we greeted you'
+    description: The time we greeted you
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: node12
+  main: index.js
