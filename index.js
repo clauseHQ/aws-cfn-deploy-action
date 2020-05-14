@@ -10,6 +10,13 @@ const cfn = H.streamifyAll(new aws.CloudFormation());
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
 const DEBUG = false;
 
+const log = ctx => obj => {
+  if (DEBUG) {
+    console.log(ctx);
+    console.log(JSON.stringify(obj, null, 2));
+  }
+};
+
 const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   .doto(log('waitForStackReady: describeStacksStream'))
   .map(({ Stacks: [{ StackStatus }] }) => StackStatus)
@@ -30,19 +37,25 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   );
 
 const StackStatusHandlers = {
-  INIT: ({ StackName, Capabilities, Parameters, TemplateBody }) => cfn.createStackStream({
+  INIT: ({ StackName, Capabilities, Parameters, TemplateBody }) => H([{
     StackName,
     Capabilities,
     Parameters,
     TemplateBody
-  }),
-  ROLLBACK_COMPLETE: ({ StackName }) => cfn.deleteStackStream({ StackName }),
-  DEFAULT: ({ StackName, Capabilities, Parameters, TemplateBody }) => cfn.updateStackStream({
+  }])
+    .doto(({ StackName }) => console.log(`Stack ${StackName} does not exist yet: creating ...`))
+    .flatMap(cfn.createStackStream),
+  ROLLBACK_COMPLETE: ({ StackName }) => H([{ StackName }])
+    .doto(({ StackName }) => console.log(`Stack ${StackName} is in ROLLBACK_COMPLETE state: deleting ...`))
+    .flatMap(cfn.deleteStackStream),
+  DEFAULT: ({ StackName, Capabilities, Parameters, TemplateBody, StackStatus }) => H([{
     StackName,
     Capabilities,
     Parameters,
     TemplateBody
-  })
+  }])
+    .doto(({ StackName }) => console.log(`Stack ${StackName} is in ${StackStatus} state: updating ...`))
+    .flatMap(cfn.updateStackStream)
     .errors((error, push) => error.message === 'No updates are to be performed.'
       ? push(null, {})
       : push(error)
@@ -65,13 +78,6 @@ const processParameters = parameters => parameters === '' ? [] : parameters
     ParameterKey,
     ParameterValue
   }));
-
-const log = ctx => obj => {
-  if (DEBUG) {
-    console.log(ctx);
-    console.log(JSON.stringify(obj, null, 2));
-  }
-};
 
 return H(inputs)
   .map(core.getInput)
@@ -96,8 +102,11 @@ return H(inputs)
   .doto(log('processed input: asynchronous'))
   .flatMap(({ StackName, ...inputs }) => waitForStackReady(StackName)
     .doto(log('first result of waiting for stack'))
-    .map(StackStatus => StackStatusHandlers[StackStatus] || StackStatusHandlers['DEFAULT'])
-    .flatMap(handler => handler({ StackName, ...inputs }))
+    .flatMap(StackStatus => (StackStatusHandlers[StackStatus] || StackStatusHandlers['DEFAULT'])({
+      StackName,
+      ...inputs,
+      StackStatus
+    }))
     .doto(log('result of operating on stack'))
     .flatMap(() => waitForStackReady(StackName))
     .doto(log('second result of waiting for stack'))
