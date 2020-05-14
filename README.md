@@ -1,6 +1,6 @@
 # aws-cfn-deploy github action
 
-This action does a proper AWS CloudFormation deployment, handling all states properly and waiting for current updates & rollbacks to complete 
+This action performs an AWS CloudFormation deployment, handling all states properly and waiting for current updates & rollbacks to complete 
 
 ## Inputs
 
