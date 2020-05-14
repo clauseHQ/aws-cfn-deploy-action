@@ -46,7 +46,7 @@ const processParameters = parameters => parameters === '' ? [] : parameters
   .replace(/^\ +/, '')
   .replace(/\ +$/, '')
   .replace(/\ +/g, ' ')
-  .split(' ');
+  .split(' ')
   .map(parameter => parameter.split('='))
   .map(([ParameterKey, ParameterValue]) => ({
     ParameterKey,
