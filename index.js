@@ -10,7 +10,9 @@ const cfn = H.streamifyAll(new aws.CloudFormation());
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
 
 const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
+  .doto(log('waitForStackReady: describeStacksStream'))
   .map(({ StackResources: [{ ResourceStatus }] }) => ResourceStatus)
+  .doto(log('waitForStackReady: ResourceStatus'))
   .errors((error, push) => error.message.indexOf('does not exist') !== -1
     ? push(null, 'INIT')
     : push(error)
