@@ -11,8 +11,8 @@ const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
 
 const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   .doto(log('waitForStackReady: describeStacksStream'))
-  .map(({ StackResources: [{ ResourceStatus }] }) => ResourceStatus)
-  .doto(log('waitForStackReady: ResourceStatus'))
+  .map(({ Stacks: [{ StackStatus }] }) => StackStatus)
+  .doto(log('waitForStackReady: StackStatus'))
   .errors((error, push) => error.message.indexOf('does not exist') !== -1
     ? push(null, 'INIT')
     : push(error)
