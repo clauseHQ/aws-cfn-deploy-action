@@ -1,0 +1,32 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+
+      - name: aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: '12345'
+          aws-secret-access-key: '12345'
+          aws-region: us-east-2
+
+      - name: custom action
+        uses: ./
+        id: test
+        with:
+          who-to-greet: Adriaan
+
+      - name: log custom action
+        run: echo "${{ steps.test.outputs.time }}"
