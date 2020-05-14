@@ -8,7 +8,7 @@ const fs = require('fs');
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
 const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
-const DEBUG = false;
+const DEBUG = true;
 
 const log = ctx => obj => {
   if (DEBUG) {
@@ -44,10 +44,10 @@ const StackStatusHandlers = {
     TemplateBody
   }])
     .doto(({ StackName }) => console.log(`Stack ${StackName} does not exist yet: creating ...`))
-    .flatMap(cfn.createStackStream),
+    .flatMap(params => cfn.createStackStream(params)),
   ROLLBACK_COMPLETE: ({ StackName }) => H([{ StackName }])
     .doto(({ StackName }) => console.log(`Stack ${StackName} is in ROLLBACK_COMPLETE state: deleting ...`))
-    .flatMap(cfn.deleteStackStream),
+    .flatMap(params => cfn.deleteStackStream(params)),
   DEFAULT: ({ StackName, Capabilities, Parameters, TemplateBody, StackStatus }) => H([{
     StackName,
     Capabilities,
@@ -55,11 +55,8 @@ const StackStatusHandlers = {
     TemplateBody
   }])
     .doto(({ StackName }) => console.log(`Stack ${StackName} is in ${StackStatus} state: updating ...`))
-    .flatMap(cfn.updateStackStream)
-    .errors((error, push) => error.message === 'No updates are to be performed.'
-      ? push(null, {})
-      : push(error)
-    )
+    .flatMap(params => cfn.updateStackStream(params))
+    .errors((error, push) => error.message === 'No updates are to be performed.' ? push(null, {}) : push(error))
 };
 
 const processCapabilities = capabilities => capabilities === '' ? [] : capabilities
