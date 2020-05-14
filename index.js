@@ -27,7 +27,10 @@ return H(inputs)
   )
   .flatMap(({ StackName, ...inputs }) => cfn.describeStacksStream({ StackName }))
   .doto(() => core.setOutput('time', new Date().toTimeString()))
-  .errors(error => core.setFailed(error.message))
+  .errors(error => {
+    console.error(error);
+    core.setFailed(error.message);
+  })
   .each(console.log);
 /*
       - name: cloudformation deploy
