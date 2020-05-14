@@ -20,7 +20,7 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
       ? push(null, 'INIT')
       : push(error);
   })
-  .flatMap(StackStatus => H.wrapCallback((StackStatus, callback) => /^.*_FAILED/.test(StackStatus)
+  .flatMap(H.wrapCallback((StackStatus, callback) => /^.*_FAILED/.test(StackStatus)
     ? callback({ message: `Stack ${StackName} is in the ${StackStatus} state. Fix that before trying to deploy again` })
     : callback(null, StackStatus)
   ))
