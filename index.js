@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const cfn = H.streamifyAll(new aws.CloudFormation());
 
-const inputs = ['template', 'stack-name', 'capabilities', 'parameters'];
+const inputKeys = ['template', 'stack-name', 'capabilities', 'parameters'];
 const DEBUG = R.isEmpty(core.getInput('debug')) ? false : true;
 
 const log = ctx => obj => {
@@ -16,6 +16,21 @@ const log = ctx => obj => {
     console.log(JSON.stringify(obj, null, 2));
   }
 };
+
+const getStackInputs = inputKeys => (({
+  template: Template,
+  'stack-name': StackName,
+  capabilities: Capabilities,
+  parameters: Parameters
+}) => ({
+  Template,
+  StackName,
+  Capabilities,
+  Parameters
+}))(R.fromPairs(R.zip(
+  inputKeys,
+  inputKeys.map(core.getInput)
+)));
 
 const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   .doto(log('waitForStackReady: describeStacksStream'))
@@ -76,20 +91,9 @@ const processParameters = parameters => parameters === '' ? [] : parameters
     ParameterValue
   }));
 
-return H(inputs)
-  .map(core.getInput)
-  .collect()
-  .map(R.zip(inputs))
-  .map(R.fromPairs)
-  .doto(log('raw input'))
-  .map(inputs => ({
-    ...inputs,
-    StackName: inputs['stack-name'],
-    Capabilities: processCapabilities(inputs.capabilities),
-    Parameters: processParameters(inputs.parameters)
-  }))
+return getStackInputs(inputKeys)
   .doto(log('processed input: synchronous'))
-  .flatMap(({ template, ...inputs }) => H.wrapCallback(fs.readFile)(template)
+  .flatMap(({ Template, ...inputs }) => H.wrapCallback(fs.readFile)(Template)
     .map(body => body.toString('utf8'))
     .map(TemplateBody => ({
       ...inputs,
