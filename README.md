@@ -23,7 +23,7 @@ A space-separated list of stack parameters, each formatted as `Key=Value`.
 ## Example usage
 
 ```yml
-uses: adriaan-pelzer/aws-cfn-deploy-action@v1.0.3
+uses: adriaan-pelzer/aws-cfn-deploy-action@v1.0.4
 with:
   template: cfn-template-yml
   stack-name: my-test-stack
