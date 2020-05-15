@@ -91,7 +91,7 @@ const processParameters = parameters => parameters === '' ? [] : parameters
     ParameterValue
   }));
 
-return getStackInputs(inputKeys)
+return H([getStackInputs(inputKeys)])
   .doto(log('processed input: synchronous'))
   .flatMap(({ Template, ...inputs }) => H.wrapCallback(fs.readFile)(Template)
     .map(body => body.toString('utf8'))
