@@ -111,6 +111,10 @@ return H([getStackInputs(inputKeys)])
     .doto(log('result of operating on stack'))
     .flatMap(() => waitForStackReady(StackName))
     .doto(log('second result of waiting for stack'))
+    .flatMap(H.wrapCallback((StackStatus, callback) => StackStatus !== 'UPDATE_COMPLETE' && StackStatus !== 'CREATE_COMPLETE'
+      ? callback({ message: `Stack ${StackName} deployment failed` })
+      : callback(null, StackStatus)
+    ))
   )
   .errors(error => {
     console.error(JSON.stringify(error));
