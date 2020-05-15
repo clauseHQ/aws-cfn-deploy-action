@@ -17,16 +17,33 @@ const log = ctx => obj => {
   }
 };
 
+const processCapabilities = capabilities => capabilities === '' ? [] : capabilities
+  .replace(/^\ +/, '')
+  .replace(/\ +$/, '')
+  .replace(/\ +/g, ' ')
+  .split(' ');
+
+const processParameters = parameters => parameters === '' ? [] : parameters
+  .replace(/^\ +/, '')
+  .replace(/\ +$/, '')
+  .replace(/\ +/g, ' ')
+  .split(' ')
+  .map(parameter => parameter.split('='))
+  .map(([ParameterKey, ParameterValue]) => ({
+    ParameterKey,
+    ParameterValue
+  }));
+
 const getStackInputs = inputKeys => (({
   template: Template,
   'stack-name': StackName,
-  capabilities: Capabilities,
-  parameters: Parameters
+  capabilities,
+  parameters
 }) => ({
   Template,
   StackName,
-  Capabilities,
-  Parameters
+  Capabilities: processCapabilities(capabilities),
+  Parameters: processParameters(parameters)
 }))(R.fromPairs(R.zip(
   inputKeys,
   inputKeys.map(core.getInput)
@@ -73,23 +90,6 @@ const StackStatusHandlers = {
     .flatMap(params => cfn.updateStackStream(params))
     .errors((error, push) => error.message === 'No updates are to be performed.' ? push(null, {}) : push(error))
 };
-
-const processCapabilities = capabilities => capabilities === '' ? [] : capabilities
-  .replace(/^\ +/, '')
-  .replace(/\ +$/, '')
-  .replace(/\ +/g, ' ')
-  .split(' ');
-
-const processParameters = parameters => parameters === '' ? [] : parameters
-  .replace(/^\ +/, '')
-  .replace(/\ +$/, '')
-  .replace(/\ +/g, ' ')
-  .split(' ')
-  .map(parameter => parameter.split('='))
-  .map(([ParameterKey, ParameterValue]) => ({
-    ParameterKey,
-    ParameterValue
-  }));
 
 return H([getStackInputs(inputKeys)])
   .doto(log('processed input: synchronous'))
