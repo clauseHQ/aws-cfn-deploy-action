@@ -181,9 +181,7 @@ jobs:
           aws-region: us-west-2
 
       - name: delete stack
-        run: |
-          aws cloudformation wait stack-update-complete --stack-name aws-cfn-deploy-action-test | true
-          aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
+        run: aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
   notify:
     name: Notify User of Failure (Slack)
