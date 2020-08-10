@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      status: ${{ steps.deploy.outputs.status }}
+      stack-status: ${{ steps.deploy.outputs.stack-status }}
       message: ${{ steps.deploy.outputs.message }}
 
     steps:
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      status: ${{ steps.deploy.outputs.status }}
+      stack-status: ${{ steps.deploy.outputs.stack-status }}
       message: ${{ steps.deploy.outputs.message }}
 
     steps:
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      status: ${{ steps.deploy.outputs.status }}
+      stack-status: ${{ steps.deploy.outputs.stack-status }}
       message: ${{ steps.deploy.outputs.message }}
 
     steps:
@@ -140,11 +140,11 @@ jobs:
       - name: check test results
         run: |
           echo "test-validation-failure"
-          echo "status: ${{ needs.test-validation-failure.outputs.status }}"
+          echo "stack-status: ${{ needs.test-validation-failure.outputs.stack-status }}"
           echo "message: ${{ needs.test-validation-failure.outputs.message }}"
           echo "test-deployment-failure"
-          echo "status: ${{ needs.test-deployment-failure.outputs.status }}"
+          echo "stack-status: ${{ needs.test-deployment-failure.outputs.stack-status }}"
           echo "message: ${{ needs.test-deployment-failure.outputs.message }}"
           echo "test-success"
-          echo "status: ${{ needs.test-success.outputs.status }}"
+          echo "stack-status: ${{ needs.test-success.outputs.stack-status }}"
           echo "message: ${{ needs.test-success.outputs.message }}"

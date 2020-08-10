@@ -60,7 +60,7 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
       : push(error);
   })
   .flatMap(H.wrapCallback((StackStatus, callback) => /^.*_FAILED/.test(StackStatus)
-    ? callback({ message: `Stack ${StackName} is in the ${StackStatus} state. Fix that before trying to deploy again` })
+    ? callback({ StackStatus, message: `Stack ${StackName} is in the ${StackStatus} state. Fix that before trying to deploy again` })
     : callback(null, StackStatus)
   ))
   .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus) || R.contains(StackStatus, R.keys(StackStatusHandlers))
@@ -88,7 +88,10 @@ const StackStatusHandlers = {
   }])
     .doto(({ StackName }) => console.log(`Stack ${StackName} is in ${StackStatus} state: updating ...`))
     .flatMap(params => cfn.updateStackStream(params))
-    .errors((error, push) => error.message === 'No updates are to be performed.' ? push(null, {}) : push(error))
+    .errors((error, push) => error.message === 'No updates are to be performed.' ? push(null, {}) : push({
+      StackStatus,
+      ...error
+    }))
 };
 
 return H([getStackInputs(inputKeys)])
@@ -121,13 +124,14 @@ return H([getStackInputs(inputKeys)])
         .doto(log('result of operating on stack'))
         .flatMap(() => waitForStackReady(StackName))
         .doto(log('result of waiting for stack: phase 3'));
-      return H(Promise.reject({ status: StackStatus, message: `Stack ${StackName} deployment failed` }));
+      return H(Promise.reject({ StackStatus, message: `Stack ${StackName} deployment failed` }));
     })
   )
   .errors(error => {
     console.error(JSON.stringify(error));
-    core.setOutput('status', error.status);
+    core.setOutput('stack-status', error.StackStatus);
     core.setOutput('message', error.message);
+    console.log('never fail: "' + core.getInput('never-fail') + '"');
     core.setFailed(error.message);
   })
   .each(StackStatus => {
