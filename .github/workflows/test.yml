@@ -11,6 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      status: ${{ steps.deploy.outputs.status }}
+      message: ${{ steps.deploy.outputs.message }}
+
     steps:
       - name: git checkout
         uses: actions/checkout@v2
@@ -23,6 +27,7 @@ jobs:
           aws-region: us-west-2
 
       - name: custom action
+        id: deploy
         uses: ./
         id: test
         with:
@@ -40,6 +45,10 @@ jobs:
     name: Test deployment failure
 
     runs-on: ubuntu-latest
+
+    outputs:
+      status: ${{ steps.deploy.outputs.status }}
+      message: ${{ steps.deploy.outputs.message }}
 
     steps:
       - name: git checkout
@@ -71,6 +80,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      status: ${{ steps.deploy.outputs.status }}
+      message: ${{ steps.deploy.outputs.message }}
+
     steps:
       - name: git checkout
         uses: actions/checkout@v2
@@ -90,3 +103,28 @@ jobs:
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
           debug: true
+
+  consolidate:
+    if: always()
+
+    needs:
+      - test-validation-failure
+      - test-deployment-failure
+      - test-success
+
+    name: Consolidate test results
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: check test results
+        run: |
+          echo "test-validation-failure"
+          echo "status: ${{ needs.test-validation-failure.outputs.status }}"
+          echo "message: ${{ needs.test-validation-failure.outputs.message }}"
+          echo "test-deployment-failure"
+          echo "status: ${{ needs.test-deployment-failure.outputs.status }}"
+          echo "message: ${{ needs.test-deployment-failure.outputs.message }}"
+          echo "test-success"
+          echo "status: ${{ needs.test-success.outputs.status }}"
+          echo "message: ${{ needs.test-success.outputs.message }}"

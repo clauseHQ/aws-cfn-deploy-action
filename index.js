@@ -121,15 +121,16 @@ return H([getStackInputs(inputKeys)])
         .doto(log('result of operating on stack'))
         .flatMap(() => waitForStackReady(StackName))
         .doto(log('result of waiting for stack: phase 3'));
-      return H(Promise.reject({ message: `Stack ${StackName} deployment failed` }));
+      return H(Promise.reject({ status: StackStatus, message: `Stack ${StackName} deployment failed` }));
     })
-    .flatMap(H.wrapCallback((StackStatus, callback) => StackStatus !== 'UPDATE_COMPLETE' && StackStatus !== 'CREATE_COMPLETE'
-      ? callback({ message: `Stack ${StackName} deployment failed` })
-      : callback(null, StackStatus)
-    ))
   )
   .errors(error => {
     console.error(JSON.stringify(error));
+    core.setOutput('status', error.status);
+    core.setOutput('message', error.message);
     core.setFailed(error.message);
   })
-  .each(StackStatus => console.log(`final status is ${StackStatus}`));
+  .each(StackStatus => {
+    console.log(`final status is ${StackStatus}`);
+    core.setOutput('status', StackStatus);
+  });

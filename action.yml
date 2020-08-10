@@ -17,6 +17,11 @@ inputs:
   debug:
     description: Enables debug logs
     required: false
+outputs:
+  status:
+    description: the stack status upon completion
+  message:
+    description: the stack error message
 runs:
   using: node12
   main: index.js
