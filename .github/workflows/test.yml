@@ -195,4 +195,5 @@ jobs:
 
     steps:
       - name: check test results
-        run: echo "TODO: slack notify"
+        run: |
+          echo "TODO: slack notify"
