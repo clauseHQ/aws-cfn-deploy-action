@@ -1,5 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+
 const H = require('highland');
 const R = require('ramda');
 const aws = require('aws-sdk');
