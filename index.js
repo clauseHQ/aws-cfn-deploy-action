@@ -65,7 +65,7 @@ const waitForStackReady = StackName => cfn.describeStacksStream({ StackName })
   ))
   .flatMap(StackStatus => /^.*_COMPLETE$/.test(StackStatus) || R.contains(StackStatus, R.keys(StackStatusHandlers))
     ? H([StackStatus])
-    : H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 10000))
+    : H((push, next) => setTimeout(() => next(waitForStackReady(StackName)), 30000))
   );
 
 const StackStatusHandlers = {
@@ -102,7 +102,7 @@ return H([getStackInputs(inputKeys)])
   )
   .doto(log('processed input: asynchronous'))
   .flatMap(({ StackName, ...inputs }) => waitForStackReady(StackName)
-    .doto(log('first result of waiting for stack'))
+    .doto(log('result of waiting for stack: phase 1'))
     .flatMap(StackStatus => (StackStatusHandlers[StackStatus] || StackStatusHandlers['DEFAULT'])({
       StackName,
       ...inputs,
@@ -110,7 +110,19 @@ return H([getStackInputs(inputKeys)])
     }))
     .doto(log('result of operating on stack'))
     .flatMap(() => waitForStackReady(StackName))
-    .doto(log('second result of waiting for stack'))
+    .doto(log('result of waiting for stack: phase 2'))
+    .flatMap(StackStatus => {
+      if (StackStatus === 'UPDATE_COMPLETE' || StackStatus === 'CREATE_COMPLETE') return H([StackStatus]);
+      if (StackStatus === 'INIT') return StackStatusHandlers[StackStatus]({
+        StackName,
+        ...inputs,
+        StackStatus
+      })
+        .doto(log('result of operating on stack'))
+        .flatMap(() => waitForStackReady(StackName))
+        .doto(log('result of waiting for stack: phase 3'));
+      return H(Promise.reject({ message: `Stack ${StackName} deployment failed` }));
+    })
     .flatMap(H.wrapCallback((StackStatus, callback) => StackStatus !== 'UPDATE_COMPLETE' && StackStatus !== 'CREATE_COMPLETE'
       ? callback({ message: `Stack ${StackName} deployment failed` })
       : callback(null, StackStatus)
