@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: An ECS service with a private application loadbalancer
+Parameters:
+  Environment:
+    AllowedValues:
+      - Dev
+      - Staging
+      - Production
+    ConstraintDescription: Environment has to be one of Dev, Staging or Production
+    Type: String
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub ${AWS::StackName}-test
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      ContainerDefinitions:
+        -
+          Name: !Ref AWS::StackName
+          Image: !Sub ${AWS::StackName}-non-existing-image
