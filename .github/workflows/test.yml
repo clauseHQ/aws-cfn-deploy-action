@@ -182,7 +182,7 @@ jobs:
 
       - name: delete stack
         run: |
-          aws cloudformation wait stack-update-complete
+          aws cloudformation wait stack-update-complete | true
           aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
   consolidate:
