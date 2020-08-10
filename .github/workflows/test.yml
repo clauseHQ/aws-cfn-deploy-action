@@ -11,10 +11,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    outputs:
-      stack-status: ${{ steps.deploy.outputs.stack-status }}
-      message: ${{ steps.deploy.outputs.message }}
-
     steps:
       - name: git checkout
         uses: actions/checkout@v2
@@ -38,6 +34,8 @@ jobs:
 
       - name: check results
         run: |
+          echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
+          echo "message: ${{ steps.deploy.outputs.message }}"
           if [ "${{ steps.deploy.outputs.stack-status }}" != "" ]; then
             exit 1
           fi
@@ -52,10 +50,6 @@ jobs:
     name: Test deployment failure
 
     runs-on: ubuntu-latest
-
-    outputs:
-      stack-status: ${{ steps.deploy.outputs.stack-status }}
-      message: ${{ steps.deploy.outputs.message }}
 
     steps:
       - name: git checkout
@@ -80,6 +74,8 @@ jobs:
 
       - name: check results
         run: |
+          echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
+          echo "message: ${{ steps.deploy.outputs.message }}"
           if [ "${{ steps.deploy.outputs.stack-status }}" != "ROLLBACK_COMPLETE" ]; then
             exit 1
           fi
@@ -94,10 +90,6 @@ jobs:
     name: Test successful deployment
 
     runs-on: ubuntu-latest
-
-    outputs:
-      stack-status: ${{ steps.deploy.outputs.stack-status }}
-      message: ${{ steps.deploy.outputs.message }}
 
     steps:
       - name: git checkout
@@ -121,10 +113,52 @@ jobs:
 
       - name: check results
         run: |
+          echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
+          echo "message: ${{ steps.deploy.outputs.message }}"
           if [ "${{ steps.deploy.outputs.stack-status }}" != "CREATE_COMPLETE" ]; then
             exit 1
           fi
           if [ "${{ steps.deploy.outputs.message }}" != "" ]; then
+            exit 1
+          fi
+
+  test-update-failure:
+    needs:
+      - test-success
+
+    name: Test update failure
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+
+      - name: aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: custom action
+        id: deploy
+        uses: ./
+        with:
+          template: cfn-template-fail-deploy.yml
+          stack-name: aws-cfn-deploy-action-test
+          parameters: Environment=Dev
+          never-fail: true
+          debug: true
+
+      - name: check results
+        run: |
+          echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
+          echo "message: ${{ steps.deploy.outputs.message }}"
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "ROLLBACK_COMPLETE" ]; then
+            exit 1
+          fi
+          if [ "${{ steps.deploy.outputs.message }}" != "Stack aws-cfn-deploy-action-test deployment failed" ]; then
             exit 1
           fi
 
@@ -150,12 +184,10 @@ jobs:
         run: aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
   consolidate:
-    if: always()
+    if: failure()
 
     needs:
-      - test-validation-failure
-      - test-deployment-failure
-      - test-success
+      - test-update-failure
 
     name: Consolidate test results
 
@@ -163,13 +195,4 @@ jobs:
 
     steps:
       - name: check test results
-        run: |
-          echo "test-validation-failure"
-          echo "stack-status: ${{ needs.test-validation-failure.outputs.stack-status }}"
-          echo "message: ${{ needs.test-validation-failure.outputs.message }}"
-          echo "test-deployment-failure"
-          echo "stack-status: ${{ needs.test-deployment-failure.outputs.stack-status }}"
-          echo "message: ${{ needs.test-deployment-failure.outputs.message }}"
-          echo "test-success"
-          echo "stack-status: ${{ needs.test-success.outputs.stack-status }}"
-          echo "message: ${{ needs.test-success.outputs.message }}"
+        run: echo "TODO: slack notify"
