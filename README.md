@@ -92,3 +92,5 @@ There are a number of [Repository Secrets](https://github.com/clauseHQ/aws-cfn-d
 
 1. Configure an incoming webhook to the slack channel where you want to receive failure notifications
 2. Set the webhook url as the value of a Repository Secret named `SLACK_WEBHOOK_URL` 
+
+### _Delete AWS User and Secrets, and Slack Webhook Secret when you're done testing_
