@@ -33,11 +33,10 @@ jobs:
           template: cfn-template-fail-validation.yml
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
+          never-fail: true
           debug: true
 
   test-deployment-failure:
-    if: always()
-
     needs:
       - test-validation-failure
 
@@ -67,11 +66,10 @@ jobs:
           template: cfn-template-fail-deploy.yml
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
+          never-fail: true
           debug: true
 
   test-success:
-    if: always()
-
     needs:
       - test-deployment-failure
 

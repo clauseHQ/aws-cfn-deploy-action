@@ -131,10 +131,9 @@ return H([getStackInputs(inputKeys)])
     console.error(JSON.stringify(error));
     core.setOutput('stack-status', error.StackStatus);
     core.setOutput('message', error.message);
-    console.log('never fail: "' + core.getInput('never-fail') + '"');
-    core.setFailed(error.message);
+    if (core.getInput('never-fail') === '') core.setFailed(error.message);
   })
   .each(StackStatus => {
     console.log(`final status is ${StackStatus}`);
-    core.setOutput('status', StackStatus);
+    core.setOutput('stack-status', StackStatus);
   });
