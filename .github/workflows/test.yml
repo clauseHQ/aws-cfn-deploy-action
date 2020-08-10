@@ -36,6 +36,15 @@ jobs:
           never-fail: true
           debug: true
 
+      - name: check results
+        run: |
+          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "" ]; then
+            exit 1
+          fi
+          if [ "${{ steps.deploy.outputs.message }}" -ne "Template format error: Unresolved resource dependencies [NonExistingParameter] in the Resources block of the template" ]; then
+            exit 1
+          fi
+
   test-deployment-failure:
     needs:
       - test-validation-failure
@@ -69,6 +78,15 @@ jobs:
           never-fail: true
           debug: true
 
+      - name: check results
+        run: |
+          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "ROLLBACK_COMPLETE" ]; then
+            exit 1
+          fi
+          if [ "${{ steps.deploy.outputs.message }}" -ne "Stack aws-cfn-deploy-action-test deployment failed" ]; then
+            exit 1
+          fi
+
   test-success:
     needs:
       - test-deployment-failure
@@ -100,6 +118,15 @@ jobs:
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
           debug: true
+
+      - name: check results
+        run: |
+          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "CREATE_COMPLETE" ]; then
+            exit 1
+          fi
+          if [ "${{ steps.deploy.outputs.message }}" -ne "" ]; then
+            exit 1
+          fi
 
   clean:
     if: always()
