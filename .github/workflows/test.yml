@@ -162,26 +162,26 @@ jobs:
             exit 1
           fi
 
-  #clean:
-  #  if: always()
+  clean:
+    if: always()
 
-  #  needs:
-  #    - test-update-failure
+    needs:
+      - test-update-failure
 
-  #  name: Delete stack
+    name: Delete stack
 
-  #  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #  steps:
-  #    - name: aws credentials
-  #      uses: aws-actions/configure-aws-credentials@v1
-  #      with:
-  #        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #        aws-region: us-west-2
+    steps:
+      - name: aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
 
-  #    - name: delete stack
-  #      run: aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
+      - name: delete stack
+        run: aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
   notify:
     name: Notify User of Failure (Slack)

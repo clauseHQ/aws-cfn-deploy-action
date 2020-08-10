@@ -80,7 +80,7 @@ There are a number of [Repository Secrets](https://github.com/clauseHQ/aws-cfn-d
             "Action": [
                 "logs:*"
             ],
-            "Resource": "arn:aws:logs:YOUR_REGION:YOUR_AWS_ACCOUNT_NR:log-group:aws-cfn-deploy-action-test:*"
+            "Resource": "*"
         }
     ]
 }
