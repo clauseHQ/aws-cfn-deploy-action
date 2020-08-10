@@ -185,7 +185,7 @@ jobs:
         id: deploy
         uses: ./
         with:
-          template: cfn-template-ok.yml
+          template: cfn-template-fail-deploy.yml
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
           never-fail: true
