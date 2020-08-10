@@ -38,10 +38,10 @@ jobs:
 
       - name: check results
         run: |
-          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "H" ]; then
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "H" ]; then
             exit 1
           fi
-          if [ "${{ steps.deploy.outputs.message }}" -ne "Template format error: Unresolved resource dependencies [NonExistingParameter] in the Resources block of the template" ]; then
+          if [ "${{ steps.deploy.outputs.message }}" != "Template format error: Unresolved resource dependencies [NonExistingParameter] in the Resources block of the template" ]; then
             exit 1
           fi
 
@@ -80,10 +80,10 @@ jobs:
 
       - name: check results
         run: |
-          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "ROLLBACK_COMPLETE" ]; then
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "ROLLBACK_COMPLETE" ]; then
             exit 1
           fi
-          if [ "${{ steps.deploy.outputs.message }}" -ne "Stack aws-cfn-deploy-action-test deployment failed" ]; then
+          if [ "${{ steps.deploy.outputs.message }}" != "Stack aws-cfn-deploy-action-test deployment failed" ]; then
             exit 1
           fi
 
@@ -121,10 +121,10 @@ jobs:
 
       - name: check results
         run: |
-          if [ "${{ steps.deploy.outputs.stack-status }}" -ne "CREATE_COMPLETE" ]; then
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "CREATE_COMPLETE" ]; then
             exit 1
           fi
-          if [ "${{ steps.deploy.outputs.message }}" -ne "" ]; then
+          if [ "${{ steps.deploy.outputs.message }}" != "" ]; then
             exit 1
           fi
 
