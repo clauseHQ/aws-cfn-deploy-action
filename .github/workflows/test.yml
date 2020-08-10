@@ -185,14 +185,35 @@ jobs:
           aws cloudformation wait stack-update-complete --stack-name aws-cfn-deploy-action-test | true
           aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
-  consolidate:
-    if: failure()
+  notify:
+    name: Notify User of Failure (Slack)
 
-    name: Consolidate test results
+    if: failure()
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: check test results
+      - name: Github job status to slack text
+        id: github-job-status-to-slack-text
         run: |
-          echo "TODO: slack notify"
+          echo "::set-output name=slack-text::Release to Production Failed :scream:"
+          echo "::set-output name=jobs-status::Failure"
+
+      - name: GitHub actor to slack id
+        id: slack
+        run: |
+          SLACK_ID="$(curl -s -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H 'Content-Type: application/json' -H 'X-Auth-Repository: ${{ needs.release.outputs.repository-name }}' https://svc-usermaps.clause.io/users/byGithubName/${{ github.actor }}/slack | sed -e 's/"//g')"
+          echo "::set-output name=id::${SLACK_ID}"
+
+      - name: Notify to Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          text: ${{ steps.github-job-status-to-slack-text.outputs.slack-text }}
+          status: ${{ steps.github-job-status-to-slack-text.outputs.jobs-status }}
+          if_mention: Always
+          mention: ${{ steps.slack.outputs.id }}
+          fields: repo,message,action
+          author_name: ${{ needs.release.outputs.repository-name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
