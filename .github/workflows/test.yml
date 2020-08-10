@@ -29,7 +29,6 @@ jobs:
       - name: custom action
         id: deploy
         uses: ./
-        id: test
         with:
           template: cfn-template-fail-validation.yml
           stack-name: aws-cfn-deploy-action-test
@@ -62,8 +61,8 @@ jobs:
           aws-region: us-west-2
 
       - name: custom action
+        id: deploy
         uses: ./
-        id: test
         with:
           template: cfn-template-fail-deploy.yml
           stack-name: aws-cfn-deploy-action-test
@@ -96,8 +95,8 @@ jobs:
           aws-region: us-west-2
 
       - name: custom action
+        id: deploy
         uses: ./
-        id: test
         with:
           template: cfn-template-ok.yml
           stack-name: aws-cfn-deploy-action-test
