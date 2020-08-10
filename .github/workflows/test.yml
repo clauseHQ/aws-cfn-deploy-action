@@ -164,9 +164,9 @@ jobs:
 
   test-update-failure-nochange:
     needs:
-      - test-success
+      - test-update-failure
 
-    name: Test update failure
+    name: Test update no change after failure
 
     runs-on: ubuntu-latest
 
@@ -185,7 +185,7 @@ jobs:
         id: deploy
         uses: ./
         with:
-          template: cfn-template-fail-deploy.yml
+          template: cfn-template-ok.yml
           stack-name: aws-cfn-deploy-action-test
           parameters: Environment=Dev
           never-fail: true
