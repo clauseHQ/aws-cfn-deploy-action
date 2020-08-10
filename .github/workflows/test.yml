@@ -162,51 +162,11 @@ jobs:
             exit 1
           fi
 
-  test-update-failure-nochange:
-    needs:
-      - test-update-failure
-
-    name: Test update no change after failure
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: git checkout
-        uses: actions/checkout@v2
-
-      - name: aws credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      - name: custom action
-        id: deploy
-        uses: ./
-        with:
-          template: cfn-template-fail-deploy.yml
-          stack-name: aws-cfn-deploy-action-test
-          parameters: Environment=Dev
-          never-fail: true
-          debug: true
-
-      - name: check results
-        run: |
-          echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
-          echo "message: ${{ steps.deploy.outputs.message }}"
-          if [ "${{ steps.deploy.outputs.stack-status }}" != "UPDATE_ROLLBACK_COMPLETE" ]; then
-            exit 1
-          fi
-          if [ "${{ steps.deploy.outputs.message }}" != "Stack aws-cfn-deploy-action-test deployment failed" ]; then
-            exit 1
-          fi
-
   clean:
     if: always()
 
     needs:
-      - test-update-failure-nochange
+      - test-update-failure
 
     name: Delete stack
 
