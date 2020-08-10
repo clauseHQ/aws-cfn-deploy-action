@@ -38,7 +38,7 @@ jobs:
 
       - name: check results
         run: |
-          if [ "${{ steps.deploy.outputs.stack-status }}" != "H" ]; then
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "" ]; then
             exit 1
           fi
           if [ "${{ steps.deploy.outputs.message }}" != "Template format error: Unresolved resource dependencies [NonExistingParameter] in the Resources block of the template" ]; then
