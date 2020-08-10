@@ -155,7 +155,7 @@ jobs:
         run: |
           echo "stack-status: ${{ steps.deploy.outputs.stack-status }}"
           echo "message: ${{ steps.deploy.outputs.message }}"
-          if [ "${{ steps.deploy.outputs.stack-status }}" != "ROLLBACK_COMPLETE" ]; then
+          if [ "${{ steps.deploy.outputs.stack-status }}" != "UPDATE_ROLLBACK_COMPLETE" ]; then
             exit 1
           fi
           if [ "${{ steps.deploy.outputs.message }}" != "Stack aws-cfn-deploy-action-test deployment failed" ]; then
@@ -181,7 +181,9 @@ jobs:
           aws-region: us-west-2
 
       - name: delete stack
-        run: aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
+        run: |
+          aws cloudformation wait stack-update-complete
+          aws cloudformation delete-stack --stack-name aws-cfn-deploy-action-test
 
   consolidate:
     if: failure()
