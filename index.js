@@ -124,7 +124,11 @@ return H([getStackInputs(inputKeys)])
       })
         .doto(log('result of operating on stack'))
         .flatMap(() => waitForStackReady(StackName))
-        .doto(log('result of waiting for stack: phase 3'));
+        .doto(log('result of waiting for stack: phase 3'))
+        .flatMap(StackStatus => {
+          if (StackStatus === 'UPDATE_COMPLETE' || StackStatus === 'CREATE_COMPLETE') return H([StackStatus]);
+          return H(Promise.reject({ StackStatus, message: `Stack ${StackName} deployment failed` }));
+        });
       return H(Promise.reject({ StackStatus, message: `Stack ${StackName} deployment failed` }));
     })
   )
@@ -132,7 +136,7 @@ return H([getStackInputs(inputKeys)])
     console.error(JSON.stringify(error));
     core.setOutput('stack-status', error.StackStatus);
     core.setOutput('message', error.message);
-    if (core.getInput('never-fail') === '') core.setFailed(error.message);
+    if (R.isEmpty(core.getInput('never-fail'))) core.setFailed(error.message);
   })
   .each(StackStatus => {
     console.log(`final status is ${StackStatus}`);
