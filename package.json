@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/adriaan-pelzer/aws-cfn-deploy-action#readme",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "@actions/github": "^2.2.0",
     "aws-sdk": "^2.676.0",
     "highland": "^2.13.5",
