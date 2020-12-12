@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adriaan-pelzer/aws-cfn-deploy-action.git"
+    "url": "git+https://github.com/clauseHQ/aws-cfn-deploy-action.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/adriaan-pelzer/aws-cfn-deploy-action/issues"
+    "url": "https://github.com/clauseHQ/aws-cfn-deploy-action/issues"
   },
-  "homepage": "https://github.com/adriaan-pelzer/aws-cfn-deploy-action#readme",
+  "homepage": "https://github.com/clauseHQ/aws-cfn-deploy-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^2.2.0",
